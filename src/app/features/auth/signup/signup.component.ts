@@ -24,10 +24,18 @@ interface RegisterResponse {
         <div class="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
           <form [formGroup]="signupForm" (ngSubmit)="onSubmit()" class="space-y-6">
             <div>
-              <label for="name" class="block text-sm font-medium text-gray-700">Full Name</label>
+              <label for="firstname" class="block text-sm font-medium text-gray-700">First Name</label>
               <div class="mt-1">
-                <input id="name" formControlName="name" type="text" class="input-field" [ngClass]="{'border-red-500': signupForm.get('name')?.invalid && signupForm.get('name')?.touched}">
-                <p *ngIf="signupForm.get('name')?.invalid && signupForm.get('name')?.touched" class="mt-2 text-sm text-red-600">Full name is required</p>
+                <input id="firstname" formControlName="firstname" type="text" class="input-field" [ngClass]="{'border-red-500': signupForm.get('firstname')?.invalid && signupForm.get('firstname')?.touched}">
+                <p *ngIf="signupForm.get('firstname')?.invalid && signupForm.get('firstname')?.touched" class="mt-2 text-sm text-red-600">First name is required</p>
+              </div>
+            </div>
+
+            <div>
+              <label for="lastname" class="block text-sm font-medium text-gray-700">Last Name</label>
+              <div class="mt-1">
+                <input id="lastname" formControlName="lastname" type="text" class="input-field" [ngClass]="{'border-red-500': signupForm.get('lastname')?.invalid && signupForm.get('lastname')?.touched}">
+                <p *ngIf="signupForm.get('lastname')?.invalid && signupForm.get('lastname')?.touched" class="mt-2 text-sm text-red-600">Last name is required</p>
               </div>
             </div>
 
@@ -48,23 +56,15 @@ interface RegisterResponse {
             </div>
 
             <div>
-              <label for="phone" class="block text-sm font-medium text-gray-700">Phone Number</label>
-              <div class="mt-1">
-                <input id="phone" formControlName="phone" type="tel" class="input-field" [ngClass]="{'border-red-500': signupForm.get('phone')?.invalid && signupForm.get('phone')?.touched}">
-                <p *ngIf="signupForm.get('phone')?.invalid && signupForm.get('phone')?.touched" class="mt-2 text-sm text-red-600">Valid phone number is required</p>
-              </div>
-            </div>
-
-            <div>
               <label class="block text-sm font-medium text-gray-700">Role</label>
               <div class="mt-2">
                 <div class="flex items-center space-x-4">
                   <label class="flex items-center">
-                    <input type="radio" formControlName="role" value="client" class="h-4 w-4 text-airbnb">
+                    <input type="radio" formControlName="role" value="ROLE_CLIENT" class="h-4 w-4 text-airbnb">
                     <span class="ml-2">Client</span>
                   </label>
                   <label class="flex items-center">
-                    <input type="radio" formControlName="role" value="host" class="h-4 w-4 text-airbnb">
+                    <input type="radio" formControlName="role" value="ROLE_HOST" class="h-4 w-4 text-airbnb">
                     <span class="ml-2">Host</span>
                   </label>
                 </div>
@@ -110,26 +110,47 @@ export class SignupComponent {
   signupForm: FormGroup;
   showSuccessMessage = false;
   showErrorMessage = false;
-  successMessage = '';
-  errorMessage = '';
+  successMessage = 'registered successfully';
+  errorMessage = 'an error occured while signing up';
 
   constructor(private fb: FormBuilder, private http: HttpClient) {
     this.signupForm = this.fb.group({
-      name: ['', [Validators.required]],
+      firstname: ['', [Validators.required]],
+      lastname: ['', [Validators.required]],
       email: ['', [Validators.required, Validators.email]],
       password: ['', [Validators.required, Validators.minLength(8)]],
-      phone: ['', [Validators.required, Validators.pattern(/^\+?[1-9]\d{1,14}$/)]],
-      role: ['client', [Validators.required]]
+      role: ['ROLE_CLIENT', [Validators.required]]
     });
   }
 
   onSubmit() {
     if (this.signupForm.valid) {
-      this.http.post('http://localhost:8080/api/users/register', this.signupForm.value, { responseType: 'text' })
+      const formData = this.signupForm.value;
+  
+      // Ensure the role is one of the expected values
+      if (
+        formData.role !== 'ROLE_ADMIN' &&
+        formData.role !== 'ROLE_HOST' &&
+        formData.role !== 'ROLE_CLIENT'
+      ) {
+        formData.role = 'ROLE_CLIENT'; // Default to client if somehow an invalid role is selected
+      }
+  
+      // Include headers in the request
+      const headers = {
+        'Content-Type': 'application/json',
+      };
+  
+      this.http
+        .post('http://localhost:8080/api/v1/auth/register', formData, {
+          headers, // Add headers here
+          responseType: 'text',
+          withCredentials: true, // Optional: Include credentials if needed
+        })
         .subscribe({
           next: (response: string) => {
-            console.log('User registered:', response);
-            this.successMessage = response || 'User registered successfully!';
+            console.log('User registered');
+            this.successMessage = 'User registered successfully!';
             this.showSuccessMessage = true;
             this.showErrorMessage = false;
             this.resetForm();
@@ -141,7 +162,8 @@ export class SignupComponent {
             console.error('Registration failed:', error);
             if (error.status === 201) {
               // This is actually a success case
-              this.successMessage = error.error || 'User registered successfully!';
+              this.successMessage =
+                'User registered successfully!';
               this.showSuccessMessage = true;
               this.showErrorMessage = false;
               this.resetForm();
@@ -149,18 +171,21 @@ export class SignupComponent {
                 this.showSuccessMessage = false;
               }, 3000);
             } else {
-              this.errorMessage = error.error || 'An error occurred during registration. Please try again.';
+              this.errorMessage =
+                error.error ||
+                'An error occurred during registration. Please try again.';
               this.showErrorMessage = true;
               this.showSuccessMessage = false;
             }
-          }
+          },
         });
     } else {
       this.signupForm.markAllAsTouched();
     }
   }
+  
 
   resetForm() {
-    this.signupForm.reset({role: 'client'});
+    this.signupForm.reset({role: 'ROLE_CLIENT'});
   }
 }

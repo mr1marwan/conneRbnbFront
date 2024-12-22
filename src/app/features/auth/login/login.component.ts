@@ -2,11 +2,13 @@ import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterModule } from '@angular/router';
+import { HttpClientModule, HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterModule],
+  imports: [CommonModule, ReactiveFormsModule, RouterModule, HttpClientModule],
   template: `
     <div class="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
       <div class="sm:mx-auto sm:w-full sm:max-w-md">
@@ -20,47 +22,32 @@ import { RouterModule } from '@angular/router';
             <div>
               <label for="email" class="block text-sm font-medium text-gray-700">Email address</label>
               <div class="mt-1">
-                <input id="email" formControlName="email" type="email" class="input-field">
+                <input id="email" formControlName="email" type="email" class="input-field" [ngClass]="{'border-red-500': loginForm.get('email')?.invalid && loginForm.get('email')?.touched}">
+                <p *ngIf="loginForm.get('email')?.invalid && loginForm.get('email')?.touched" class="mt-2 text-sm text-red-600">Valid email is required</p>
               </div>
             </div>
 
             <div>
               <label for="password" class="block text-sm font-medium text-gray-700">Password</label>
               <div class="mt-1">
-                <input id="password" formControlName="password" type="password" class="input-field">
-              </div>
-            </div>
-
-            <div class="flex items-center justify-between">
-              <div class="flex items-center">
-                <input id="remember_me" type="checkbox" class="h-4 w-4 text-airbnb focus:ring-airbnb border-gray-300 rounded">
-                <label for="remember_me" class="ml-2 block text-sm text-gray-900">Remember me</label>
-              </div>
-
-              <div class="text-sm">
-                <a href="#" class="font-medium text-airbnb hover:text-airbnb-dark">Forgot your password?</a>
+                <input id="password" formControlName="password" type="password" class="input-field" [ngClass]="{'border-red-500': loginForm.get('password')?.invalid && loginForm.get('password')?.touched}">
+                <p *ngIf="loginForm.get('password')?.invalid && loginForm.get('password')?.touched" class="mt-2 text-sm text-red-600">Password is required</p>
               </div>
             </div>
 
             <div>
-              <button type="submit" class="w-full btn-primary">Sign in</button>
+              <button type="submit" [disabled]="loginForm.invalid" class="w-full btn-primary" [ngClass]="{'opacity-50 cursor-not-allowed': loginForm.invalid}">Sign in</button>
             </div>
           </form>
 
-          <div class="mt-6">
-            <div class="relative">
-              <div class="absolute inset-0 flex items-center">
-                <div class="w-full border-t border-gray-300"></div>
-              </div>
-              <div class="relative flex justify-center text-sm">
-                <span class="px-2 bg-white text-gray-500">New to Airbnb?</span>
-              </div>
-            </div>
-            <div class="mt-6">
-              <a routerLink="/signup" class="w-full inline-flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
-                Create an account
-              </a>
-            </div>
+          <!-- Success Message -->
+          <div *ngIf="showSuccessMessage" class="mt-4 bg-green-100 border-l-4 border-green-500 text-green-700 p-4">
+            <strong>Success!</strong> {{ successMessage }}
+          </div>
+
+          <!-- Error Message -->
+          <div *ngIf="showErrorMessage" class="mt-4 bg-red-100 border-l-4 border-red-500 text-red-700 p-4">
+            <strong>Error!</strong> {{ errorMessage }}
           </div>
         </div>
       </div>
@@ -69,8 +56,12 @@ import { RouterModule } from '@angular/router';
 })
 export class LoginComponent {
   loginForm: FormGroup;
+  showSuccessMessage = false;
+  showErrorMessage = false;
+  successMessage = '';
+  errorMessage = '';
 
-  constructor(private fb: FormBuilder) {
+  constructor(private fb: FormBuilder, private http: HttpClient, private router: Router) {
     this.loginForm = this.fb.group({
       email: ['', [Validators.required, Validators.email]],
       password: ['', [Validators.required]]
@@ -79,7 +70,24 @@ export class LoginComponent {
 
   onSubmit() {
     if (this.loginForm.valid) {
-      console.log(this.loginForm.value);
+      this.http.post('http://localhost:8080/api/users/login', this.loginForm.value)
+        .subscribe({
+          next: (response: any) => {
+            console.log('Login successful:', response);
+            this.successMessage = 'Login successful!';
+            this.showSuccessMessage = true;
+            this.showErrorMessage = false;
+
+            // Redirect after successful login
+            this.router.navigate(['/']);
+          },
+          error: (error: HttpErrorResponse) => {
+            console.error('Login failed:', error);
+            this.errorMessage = error.error.message || 'An error occurred during login.';
+            this.showErrorMessage = true;
+            this.showSuccessMessage = false;
+          }
+        });
     }
   }
 }
