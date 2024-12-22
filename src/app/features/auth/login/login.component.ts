@@ -49,6 +49,11 @@ import { Router } from '@angular/router';
           <div *ngIf="showErrorMessage" class="mt-4 bg-red-100 border-l-4 border-red-500 text-red-700 p-4">
             <strong>Error!</strong> {{ errorMessage }}
           </div>
+
+          <!-- Sign Up Button -->
+          <div class="mt-4">
+            <button (click)="goToSignup()" class="w-full btn-secondary">Don't have an account? Sign up</button>
+          </div>
         </div>
       </div>
     </div>
@@ -70,7 +75,7 @@ export class LoginComponent {
 
   onSubmit() {
     if (this.loginForm.valid) {
-      this.http.post('http://localhost:8080/api/users/login', this.loginForm.value)
+      this.http.post('http://localhost:8080/api/v1/auth/login', this.loginForm.value)
         .subscribe({
           next: (response: any) => {
             console.log('Login successful:', response);
@@ -79,15 +84,28 @@ export class LoginComponent {
             this.showErrorMessage = false;
 
             // Redirect after successful login
-            this.router.navigate(['/']);
+            this.router.navigate(['/home']);
           },
           error: (error: HttpErrorResponse) => {
             console.error('Login failed:', error);
-            this.errorMessage = error.error.message || 'An error occurred during login.';
+            if (error.status === 401) {
+              this.errorMessage = 'Invalid email or password. Please try again.';
+            } else {
+              this.errorMessage = error.error?.message || 'Invalid email or password. Please try again.';
+            }
             this.showErrorMessage = true;
             this.showSuccessMessage = false;
           }
         });
+    } else {
+      this.loginForm.markAllAsTouched();
+      this.errorMessage = 'Please fill in all required fields correctly.';
+      this.showErrorMessage = true;
+      this.showSuccessMessage = false;
     }
+  }
+
+  goToSignup() {
+    this.router.navigate(['/signup']); 
   }
 }
