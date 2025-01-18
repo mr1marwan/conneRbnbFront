@@ -1,11 +1,12 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { NavbarComponent } from '../../shared/components/navbar/navbar.component';
+import { CreatePostComponent } from '../../shared/components/create-post/create-post.component';
 
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [CommonModule, NavbarComponent],
+  imports: [CommonModule, NavbarComponent, CreatePostComponent],
   template: `
     <div class="min-h-screen bg-gray-50">
       <app-navbar></app-navbar>
@@ -14,9 +15,15 @@ import { NavbarComponent } from '../../shared/components/navbar/navbar.component
       <div class="relative bg-gray-50 pt-16 pb-20 px-4 sm:px-6 lg:pt-24 lg:pb-28 lg:px-8">
         <div class="relative max-w-7xl mx-auto">
           <div class="text-center">
-            <h1 class="text-3xl tracking-tight font-extrabold text-gray-900 sm:text-4xl">
-              Find your next stay
-            </h1>
+            <div class="flex justify-between items-center mb-8">
+              <h1 class="text-3xl tracking-tight font-extrabold text-gray-900 sm:text-4xl">
+                Find your next stay
+              </h1>
+              <button (click)="showCreatePost = true" 
+                      class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-airbnb hover:bg-airbnb-dark">
+                Create New Listing
+              </button>
+            </div>
             <p class="mt-3 max-w-2xl mx-auto text-xl text-gray-500 sm:mt-4">
               Search low prices on hotels, homes and much more...
             </p>
@@ -56,7 +63,21 @@ import { NavbarComponent } from '../../shared/components/navbar/navbar.component
           </div>
         </div>
       </div>
+
+      <!-- Create Post Popup -->
+      <app-create-post *ngIf="showCreatePost" 
+                      (close)="showCreatePost = false"
+                      (submit)="onCreatePost($event)">
+      </app-create-post>
     </div>
   `
 })
-export class HomeComponent {}
+export class HomeComponent {
+  showCreatePost = false;
+
+  onCreatePost(data: any) {
+    console.log('New post data:', data);
+    // Here you would typically send this data to your backend
+    this.showCreatePost = false;
+  }
+}

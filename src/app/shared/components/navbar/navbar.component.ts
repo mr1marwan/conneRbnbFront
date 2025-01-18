@@ -15,9 +15,6 @@ import { RouterModule } from '@angular/router';
             </div>
           </div>
           <div class="flex items-center">
-            <button class="bg-airbnb text-white px-4 py-2 rounded-full text-sm font-medium hover:bg-airbnb-dark">
-              Become a Host
-            </button>
             <div class="ml-4 relative">
               <div class="flex items-center">
                 <button class="bg-gray-800 flex text-sm rounded-full focus:outline-none">

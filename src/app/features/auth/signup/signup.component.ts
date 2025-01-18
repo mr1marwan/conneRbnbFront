@@ -140,7 +140,6 @@ export class SignupComponent {
       const headers = {
         'Content-Type': 'application/json',
       };
-  
       this.http
         .post('http://localhost:8080/api/v1/auth/register', formData, {
           headers, // Add headers here
