@@ -141,7 +141,7 @@ export class CreatePostComponent {
         this.isSubmitting = true;
 
         const authToken = localStorage.getItem('access_token');
-        const userId = localStorage.getItem('user_id'); // Get stored user ID
+        const userId = localStorage.getItem('user_id');
         
         if (!authToken || !userId) {
             console.error('No auth token or user ID found');
@@ -153,7 +153,7 @@ export class CreatePostComponent {
             .set('Authorization', `Bearer ${authToken}`);
 
         const propertyData = {
-            hostId: 7, // Use the stored user ID
+            hostId: 1, // Convert the stored userId to number and use it as hostId
             title: this.postForm.value.title,
             description: this.postForm.value.description,
             address: this.postForm.value.address,
@@ -162,6 +162,7 @@ export class CreatePostComponent {
             pricePerNight: this.postForm.value.pricePerNight,
             images: this.postForm.value.imageUrls || [] // Ensure images is always an array
         };
+        
         console.log('Sending property data:', propertyData);
         console.log('With headers:', headers);
 

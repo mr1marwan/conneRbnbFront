@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { NavbarComponent } from '../shared/components/navbar/navbar.component';
 import { CreatePostComponent } from '../shared/components/create-post/create-post.component';
+import { PropertyCardComponent } from '../shared/components/property-card/property-card.component';
 
 interface Property {
   id: number;
@@ -17,81 +18,89 @@ interface Property {
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [CommonModule, NavbarComponent, CreatePostComponent],
+  imports: [CommonModule, NavbarComponent, CreatePostComponent, PropertyCardComponent],
   template: `
     <div class="min-h-screen bg-gray-50">
       <app-navbar></app-navbar>
 
-      <!-- Hero Section -->
-      <div class="relative bg-gray-50 pt-16 pb-20 px-4 sm:px-6 lg:pt-24 lg:pb-28 lg:px-8">
+      <!-- Hero Section with Parallax Effect -->
+      <div class="relative bg-gradient-to-r from-blue-500 to-purple-600 pt-20 pb-24 px-4 sm:px-6 lg:pt-32 lg:pb-32 lg:px-8 overflow-hidden">
+        <div class="absolute inset-0 overflow-hidden">
+          <div class="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1564013799919-ab600027ffc6')] bg-cover bg-center opacity-10"></div>
+        </div>
         <div class="relative max-w-7xl mx-auto">
           <div class="text-center">
             <div class="flex justify-between items-center mb-8">
-              <h1 class="text-3xl tracking-tight font-extrabold text-gray-900 sm:text-4xl">
-                Find your next stay
-              </h1>
+              <h3 class="text-2xl tracking-tight font-extrabold text-white sm:text-5xl md:text-6xl animate-slide-in">
+                Find your dream stay
+              </h3>
               <button (click)="showCreatePost = true" 
-                      class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-airbnb hover:bg-airbnb-dark">
+                      class="transform hover:scale-105 transition-transform duration-200 inline-flex items-center px-6 py-3 border border-transparent text-sm font-medium rounded-lg text-white bg-white bg-opacity-20 hover:bg-opacity-30 backdrop-blur-sm">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                </svg>
                 Create New Listing
               </button>
             </div>
-            <p class="mt-3 max-w-2xl mx-auto text-xl text-gray-500 sm:mt-4">
-              Search low prices on hotels, homes and much more...
+            <p class="mt-3 max-w-2xl mx-auto text-xl text-white text-opacity-90 sm:mt-4 animate-slide-in" style="animation-delay: 0.2s">
+              Discover unique places to stay and unforgettable experiences
             </p>
           </div>
           
-          <!-- Search Bar -->
-          <div class="mt-8 max-w-3xl mx-auto">
+          <!-- Enhanced Search Bar -->
+          <div class="mt-12 max-w-3xl mx-auto animate-slide-in" style="animation-delay: 0.4s">
             <div class="flex items-center justify-center">
-              <div class="flex-1 min-w-0">
+              <div class="flex-1 min-w-0 relative">
                 <input type="text" 
-                       class="block w-full px-4 py-3 rounded-l-lg border-gray-300 shadow-sm focus:ring-airbnb focus:border-airbnb" 
-                       placeholder="Where are you going?">
+                       class="block w-full px-6 py-4 rounded-l-xl border-0 shadow-lg focus:ring-2 focus:ring-white text-lg" 
+                       placeholder="Where would you like to go?">
+                <span class="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400">
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                  </svg>
+                </span>
               </div>
-              <button class="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-r-lg text-white bg-airbnb hover:bg-airbnb-dark">
+              <button class="px-8 py-4 border border-transparent text-lg font-medium rounded-r-xl text-white bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 shadow-lg transform hover:scale-105 transition-all duration-200">
                 Search
               </button>
             </div>
           </div>
+        </div>
+      </div>
 
-          <!-- Property Listings -->
-          <div class="mt-12 max-w-7xl mx-auto grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            <div *ngFor="let property of properties" 
-                 class="flex flex-col rounded-lg shadow-sm overflow-hidden bg-white hover:shadow-lg transition-shadow duration-300">
-              <!-- Image Carousel -->
-              <div class="relative h-48 w-full">
-                <div class="absolute inset-0 flex">
-                  <img *ngFor="let image of property.images; let i = index"
-                       [src]="image"
-                       [class.hidden]="currentImageIndex[property.id] !== i"
-                       class="h-full w-full object-cover"
-                       alt="Property image">
-                </div>
-                <!-- Navigation Arrows -->
-                <div class="absolute inset-0 flex items-center justify-between p-2" *ngIf="property.images.length > 1">
-                  <button (click)="previousImage(property.id)" 
-                          class="p-1 rounded-full bg-white bg-opacity-70 hover:bg-opacity-100">
-                    ←
-                  </button>
-                  <button (click)="nextImage(property.id)" 
-                          class="p-1 rounded-full bg-white bg-opacity-70 hover:bg-opacity-100">
-                    →
-                  </button>
-                </div>
-                <!-- Image Counter -->
-                <div class="absolute bottom-2 right-2 bg-black bg-opacity-50 text-white px-2 py-1 rounded-full text-xs">
-                  {{currentImageIndex[property.id] + 1}}/{{property.images.length}}
-                </div>
-              </div>
-              
-              <div class="p-4">
-                <h3 class="text-lg font-semibold text-gray-900 mb-1">{{property.title}}</h3>
-                <p class="text-sm text-gray-500 mb-2">{{property.city}}</p>
-                <p class="text-sm text-gray-600 mb-3 line-clamp-2">{{property.description}}</p>
-                <p class="text-lg font-semibold text-gray-900">{{property.pricePerNight}} / night</p>
-              </div>
+      <!-- Property Listings Section -->
+      <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+        <h2 class="text-3xl font-bold text-gray-900 mb-8">Featured Properties</h2>
+        
+        <!-- Loading State -->
+        <div *ngIf="isLoading" class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          <div *ngFor="let i of [1,2,3,4,5,6,7,8]" class="rounded-xl overflow-hidden shadow-lg">
+            <div class="skeleton h-48 w-full"></div>
+            <div class="p-4">
+              <div class="skeleton h-4 w-3/4 mb-2"></div>
+              <div class="skeleton h-4 w-1/2 mb-4"></div>
+              <div class="skeleton h-4 w-full"></div>
             </div>
           </div>
+        </div>
+
+        <!-- Properties Grid -->
+        <div *ngIf="!isLoading" class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          <app-property-card 
+            *ngFor="let property of properties; let i = index" 
+            [property]="property"
+            class="animate-slide-in"
+            [style.animation-delay]="i * 0.1 + 's'">
+          </app-property-card>
+        </div>
+
+        <!-- No Results State -->
+        <div *ngIf="!isLoading && properties.length === 0" class="text-center py-12">
+          <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+          <h3 class="mt-2 text-sm font-medium text-gray-900">No properties found</h3>
+          <p class="mt-1 text-sm text-gray-500">Get started by creating a new property listing.</p>
         </div>
       </div>
 
@@ -106,7 +115,7 @@ interface Property {
 export class HomeComponent implements OnInit {
   showCreatePost = false;
   properties: Property[] = [];
-  currentImageIndex: { [key: number]: number } = {};
+  isLoading = true;
 
   constructor(private http: HttpClient) {}
 
@@ -115,42 +124,23 @@ export class HomeComponent implements OnInit {
   }
 
   fetchProperties() {
+    this.isLoading = true;
     this.http.get<Property[]>('http://localhost:8080/api/properties')
       .subscribe({
         next: (data) => {
-          console.log('Received properties:', data); // Add this line
           this.properties = data;
-          // Initialize image indices for each property
-          this.properties.forEach(property => {
-            this.currentImageIndex[property.id] = 0;
-          });
+          this.isLoading = false;
         },
         error: (error) => {
           console.error('Error fetching properties:', error);
+          this.isLoading = false;
         }
       });
-  }
-
-  nextImage(propertyId: number) {
-    const property = this.properties.find(p => p.id === propertyId);
-    if (property) {
-      this.currentImageIndex[propertyId] = 
-        (this.currentImageIndex[propertyId] + 1) % property.images.length;
-    }
-  }
-
-  previousImage(propertyId: number) {
-    const property = this.properties.find(p => p.id === propertyId);
-    if (property) {
-      this.currentImageIndex[propertyId] = 
-        (this.currentImageIndex[propertyId] - 1 + property.images.length) % property.images.length;
-    }
   }
 
   onCreatePost(data: any) {
     console.log('New post data:', data);
     this.showCreatePost = false;
-    // Refresh the properties list after creating a new post
     this.fetchProperties();
   }
 }
