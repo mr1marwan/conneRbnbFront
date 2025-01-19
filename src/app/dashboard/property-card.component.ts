@@ -1,5 +1,6 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { HttpClient, HttpHeaders, HttpClientModule } from '@angular/common/http';
 
 interface Property {
   id: number;
@@ -15,7 +16,7 @@ interface Property {
 @Component({
   selector: 'app-property-card',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, HttpClientModule],
   template: `
     <div class="bg-white rounded-lg shadow-md overflow-hidden">
       <!-- Property Image -->
@@ -59,13 +60,13 @@ interface Property {
           </button>
           
           <button
-            (click)="delete.emit(property.id)"
+            (click)="handleDelete(property.id)"
             class="inline-flex items-center px-3 py-1.5 border border-red-300 shadow-sm text-sm font-medium rounded text-red-700 bg-white hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
             <svg class="-ml-1 mr-1 h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
             </svg>
             Delete
-          </button>
+            </button>
         </div>
       </div>
     </div>
@@ -78,8 +79,44 @@ interface Property {
   `]
 })
 export class PropertyCardComponent {
-  @Input() property!: Property;
-  @Output() edit = new EventEmitter<number>();
-  @Output() delete = new EventEmitter<number>();
-  @Output() viewReservations = new EventEmitter<number>();
-}
+    @Input() property!: Property;
+    @Output() edit = new EventEmitter<number>();
+    @Output() delete = new EventEmitter<number>();
+    @Output() viewReservations = new EventEmitter<number>();
+  
+    constructor(private http: HttpClient) {}
+  
+    handleDelete(propertyId: number) {
+        const authToken = localStorage.getItem('access_token');
+        
+        if (!authToken) {
+            console.error('No auth token found');
+            return;
+        }
+     
+        const headers = new HttpHeaders()
+            .set('Authorization', `Bearer ${authToken}`);
+     
+        this.http.delete(`http://localhost:8080/api/properties/${propertyId}`, { headers })
+            .subscribe({
+                next: () => {
+                    console.log('Property deleted successfully');
+                    // Emit the delete event to notify parent component
+                    this.delete.emit(propertyId);
+                    alert('Property deleted successfully');
+                },
+                error: (error) => {
+                    // Only show error alert for non-200 status codes  
+                    if (error.status !== 200) {
+                        console.error('Error deleting property:', error);
+                        alert('Failed to delete property. Please try again.');
+                    } else {
+                        // If status is 200, treat it as success
+                        console.log('Property deleted successfully');
+                        this.delete.emit(propertyId);
+                        alert('Property deleted successfully');
+                    }
+                }
+            });
+     }
+    }

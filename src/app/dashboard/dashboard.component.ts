@@ -135,7 +135,7 @@ export class DashboardComponent implements OnInit {
 
   onDelete(propertyId: number) {
     this.propertyToDelete = propertyId;
-    this.showDeleteDialog = true;
+    window.location.href = `/dashboard`;
   }
 
   onViewReservations(propertyId: number) {
