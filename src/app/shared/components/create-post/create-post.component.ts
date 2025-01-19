@@ -138,39 +138,51 @@ export class CreatePostComponent {
 
   onSubmit() {
     if (this.postForm.valid && !this.isSubmitting) {
-      this.isSubmitting = true;
+        this.isSubmitting = true;
 
-      const authToken = "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJtcjFwYXllbWVudEBnbWFpbC5jb20iLCJpYXQiOjE3MzcyMDIwMTcsImV4cCI6MTczNzI4ODQxN30.jPAu87MpdIYEZEBxaOpBqxaj7gYIxWPEzCOroHRQe84"; // Get the token from localStorage
-      
-      const headers = new HttpHeaders()
-        .set('Content-Type', 'application/json')
-        .set('Authorization', `Bearer ${authToken}`);
+        const authToken = localStorage.getItem('access_token');
+        const userId = localStorage.getItem('user_id'); // Get stored user ID
+        
+        if (!authToken || !userId) {
+            console.error('No auth token or user ID found');
+            return;
+        }
 
-      const propertyData = {
-        hostId: this.hostId,
-        title: this.postForm.value.title,
-        description: this.postForm.value.description,
-        address: this.postForm.value.address,
-        city: this.postForm.value.city,
-        bedrooms: this.postForm.value.bedrooms,
-        pricePerNight: this.postForm.value.pricePerNight,
-        images: this.postForm.value.imageUrls
-      };
+        const headers = new HttpHeaders()
+            .set('Content-Type', 'application/json')
+            .set('Authorization', `Bearer ${authToken}`);
 
-      this.http.post('http://localhost:8080/api/properties', propertyData, { headers ,  withCredentials: true})
-        .subscribe({
-          next: (response) => {
-            this.submit.emit(response);
-            this.onClose();
-          },
-          error: (error) => {
-            console.error('Error creating property:', error);
-            // You might want to show an error message to the user here
-          },
-          complete: () => {
-            this.isSubmitting = false;
-          }
-        });
+        const propertyData = {
+            hostId: 7, // Use the stored user ID
+            title: this.postForm.value.title,
+            description: this.postForm.value.description,
+            address: this.postForm.value.address,
+            city: this.postForm.value.city,
+            bedrooms: this.postForm.value.bedrooms,
+            pricePerNight: this.postForm.value.pricePerNight,
+            images: this.postForm.value.imageUrls || [] // Ensure images is always an array
+        };
+        console.log('Sending property data:', propertyData);
+        console.log('With headers:', headers);
+
+        this.http.post('http://localhost:8080/api/properties', propertyData, { headers })
+            .subscribe({
+                next: (response) => {
+                    console.log('Property created successfully:', response);
+                    this.submit.emit(response);
+                    this.onClose();
+                },
+                error: (error) => {
+                    console.error('Error creating property:', error);
+                    if (error.error instanceof Error) {
+                        console.error('Parsing error:', error.error);
+                    }
+                    this.isSubmitting = false;
+                },
+                complete: () => {
+                    this.isSubmitting = false;
+                }
+            });
     }
-  }
+}
 }

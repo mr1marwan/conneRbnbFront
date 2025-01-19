@@ -73,19 +73,27 @@ export class LoginComponent {
     });
   }
 
-  onSubmit() {
-    if (this.loginForm.valid) {
-      this.http.post('http://localhost:8080/api/v1/auth/login', this.loginForm.value)
-        .subscribe({
-          next: (response: any) => {
-            console.log('Login successful:', response);
-            this.successMessage = 'Login successful!';
-            this.showSuccessMessage = true;
-            this.showErrorMessage = false;
 
-            // Redirect after successful login
-            this.router.navigate(['/home']);
-          },
+  onSubmit() {
+      if (this.loginForm.valid) {
+        this.http.post('http://localhost:8080/api/v1/auth/login', this.loginForm.value)
+          .subscribe({
+            next: (response: any) => {
+              console.log('Login successful:', response);
+              // Store the tokens in localStorage
+              localStorage.setItem('access_token', response.access_token);
+              localStorage.setItem('refresh_token', response.refresh_token);
+              
+              // Add this: Decode the JWT to get user info
+              const decodedToken = this.decodeJwt(response.access_token);
+              localStorage.setItem('user_id', decodedToken.id); // Assuming ID is in the token
+              
+              this.successMessage = 'Login successful!';
+              this.showSuccessMessage = true;
+              this.showErrorMessage = false;
+              
+              this.router.navigate(['/home']);
+            },
           error: (error: HttpErrorResponse) => {
             console.error('Login failed:', error);
             if (error.status === 401) {
@@ -104,6 +112,15 @@ export class LoginComponent {
       this.showSuccessMessage = false;
     }
   }
+  // Add this helper method
+private decodeJwt(token: string): any {
+  try {
+      return JSON.parse(atob(token.split('.')[1]));
+  } catch (e) {
+      console.error('Error decoding JWT:', e);
+      return {};
+  }
+}
 
   goToSignup() {
     this.router.navigate(['/signup']); 
