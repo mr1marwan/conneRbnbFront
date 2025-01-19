@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ElementRef, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 
@@ -30,7 +30,8 @@ interface Notification {
 
       <!-- Dropdown -->
       <div *ngIf="isOpen" 
-           class="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-50">
+           class="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-50"
+           #dropdown>
         <div class="p-4">
           <div class="flex justify-between items-center mb-4">
             <h3 class="text-lg font-semibold text-gray-900">Notifications</h3>
@@ -74,9 +75,11 @@ interface Notification {
                        class="text-sm text-gray-900">
                       {{notification.message}}
                     </p>
+                    <!--
                     <p class="text-xs text-gray-500 mt-1">
                       {{formatTimestamp(notification.timestamp)}}
                     </p>
+                    -->
                   </div>
                 </div>
               </div>
@@ -102,7 +105,17 @@ export class NotificationsComponent implements OnInit {
   isOpen = false;
   notifications: Notification[] = [];
 
-  constructor(private http: HttpClient) {}
+  @HostListener('document:click', ['$event'])
+  clickOutside(event: Event) {
+    if (!this.elementRef.nativeElement.contains(event.target)) {
+      this.isOpen = false;
+    }
+  }
+
+  constructor(
+    private http: HttpClient,
+    private elementRef: ElementRef
+  ) {}
 
   ngOnInit() {
     this.fetchNotifications();
@@ -153,7 +166,10 @@ export class NotificationsComponent implements OnInit {
     this.http.put<Notification>(`http://localhost:8080/api/notifications/${notification.id}/read`, {}, { headers })
       .subscribe({
         next: (updatedNotification) => {
-          notification.read = updatedNotification.read;
+          const index = this.notifications.findIndex(n => n.id === notification.id);
+          if (index !== -1) {
+            this.notifications[index] = { ...notification, read: true };
+          }
         },
         error: (error) => {
           console.error('Error marking notification as read:', error);
@@ -162,11 +178,26 @@ export class NotificationsComponent implements OnInit {
   }
 
   markAllAsRead() {
-    this.notifications.forEach(notification => {
-      if (!notification.read) {
-        this.markAsRead(notification);
-      }
-    });
+    const authToken = localStorage.getItem('access_token');
+    if (!authToken) {
+      console.error('No auth token found');
+      return;
+    }
+
+    const headers = new HttpHeaders().set('Authorization', `Bearer ${authToken}`);
+
+    this.http.put<void>('http://localhost:8080/api/notifications/mark-all-read', {}, { headers })
+      .subscribe({
+        next: () => {
+          this.notifications = this.notifications.map(notification => ({
+            ...notification,
+            read: true
+          }));
+        },
+        error: (error) => {
+          console.error('Error marking all notifications as read:', error);
+        }
+      });
   }
 
   formatTimestamp(timestamp: string): string {
