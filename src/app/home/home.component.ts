@@ -32,14 +32,14 @@ interface SearchParams {
       <app-navbar></app-navbar>
 
       <!-- Hero Section with Parallax Effect -->
-      <div class="relative bg-gradient-to-r from-blue-500 to-purple-600 pt-20 pb-24 px-4 sm:px-6 lg:pt-32 lg:pb-32 lg:px-8 overflow-hidden">
+      <div class="relative bg-gradient-to-r from-blue-500 to-purple-600 pt-20 pb-24 px-4 sm:px-6 lg:pt-18 lg:pb-18 lg:px-8 overflow-hidden">
         <div class="absolute inset-0 overflow-hidden">
           <div class="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1564013799919-ab600027ffc6')] bg-cover bg-center opacity-10"></div>
         </div>
         <div class="relative max-w-7xl mx-auto">
           <div class="text-center">
             <div class="flex justify-between items-center mb-8">
-              <h3 class="text-2xl tracking-tight font-extrabold text-white sm:text-5xl md:text-6xl animate-slide-in">
+              <h3 class="text-2xl tracking-tight font-extrabold text-white sm:text-3xl md:text-4xl animate-slide-in">
                 Find your dream stay
               </h3>
               <button (click)="showCreatePost = true" 
@@ -66,7 +66,7 @@ interface SearchParams {
                     type="text" 
                     id="city"
                     [(ngModel)]="searchParams.city"
-                    class="block w-full px-4 py-3 rounded-lg border-gray-300 shadow-sm focus:ring-2 focus:ring-airbnb focus:border-airbnb" 
+                    class="block w-full px-4 py-3 rounded-lg border-gray-600 shadow-sm focus:ring-2 focus:ring-airbnb focus:border-airbnb" 
                     placeholder="Where are you going?"
                   >
                 </div>
