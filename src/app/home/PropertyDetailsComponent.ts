@@ -11,6 +11,7 @@ interface Property {
   city: string;
   title: string;
   description: string;
+  bedrooms:number;
   pricePerNight: number;
   images: string[];
 }
@@ -76,6 +77,9 @@ interface BookingDates {
 
             <div class="border-t border-b border-gray-200 py-4">
               <p class="text-gray-700 text-base leading-relaxed">{{property.description}}</p>
+            </div>
+            <div class="border-t border-b border-gray-200 py-4">
+              <p class="text-gray-700 text-base leading-relaxed">{{property.bedrooms}} rooms</p>
             </div>
 
             <div class="flex flex-col sm:flex-row justify-between items-center space-y-3 sm:space-y-0">

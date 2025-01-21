@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
+import { FormsModule } from '@angular/forms';
 import { NavbarComponent } from '../shared/components/navbar/navbar.component';
 import { CreatePostComponent } from '../shared/components/create-post/create-post.component';
 import { PropertyCardComponent } from '../shared/components/property-card/property-card.component';
@@ -12,13 +13,20 @@ interface Property {
   title: string;
   description: string;
   pricePerNight: number;
+  bedrooms: number;
   images: string[];
+}
+
+interface SearchParams {
+  city: string;
+  maxPrice: number | null;
+  numberOfRooms: number | null;
 }
 
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [CommonModule, NavbarComponent, CreatePostComponent, PropertyCardComponent],
+  imports: [CommonModule, FormsModule, NavbarComponent, CreatePostComponent, PropertyCardComponent],
   template: `
     <div class="min-h-screen bg-gray-50">
       <app-navbar></app-navbar>
@@ -48,21 +56,60 @@ interface Property {
           </div>
           
           <!-- Enhanced Search Bar -->
-          <div class="mt-12 max-w-3xl mx-auto animate-slide-in" style="animation-delay: 0.4s">
-            <div class="flex items-center justify-center">
-              <div class="flex-1 min-w-0 relative">
-                <input type="text" 
-                       class="block w-full px-6 py-4 rounded-l-xl border-0 shadow-lg focus:ring-2 focus:ring-white text-lg" 
-                       placeholder="Where would you like to go?">
-                <span class="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400">
-                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-                  </svg>
-                </span>
+          <div class="mt-12 max-w-4xl mx-auto animate-slide-in" style="animation-delay: 0.4s">
+            <div class="bg-white rounded-xl shadow-lg p-4">
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <!-- City Input -->
+                <div class="relative">
+                  <label for="city" class="block text-sm font-medium text-gray-700 mb-1">City</label>
+                  <input 
+                    type="text" 
+                    id="city"
+                    [(ngModel)]="searchParams.city"
+                    class="block w-full px-4 py-3 rounded-lg border-gray-300 shadow-sm focus:ring-2 focus:ring-airbnb focus:border-airbnb" 
+                    placeholder="Where are you going?"
+                  >
+                </div>
+
+                <!-- Max Price Input -->
+                <div class="relative">
+                  <label for="maxPrice" class="block text-sm font-medium text-gray-700 mb-1">Max Price per Night</label>
+                  <div class="relative">
+                    <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-500">
+                      $
+                    </span>
+                    <input 
+                      type="number" 
+                      id="maxPrice"
+                      [(ngModel)]="searchParams.maxPrice"
+                      class="block w-full pl-8 pr-4 py-3 rounded-lg border-gray-300 shadow-sm focus:ring-2 focus:ring-airbnb focus:border-airbnb" 
+                      placeholder="Maximum price"
+                    >
+                  </div>
+                </div>
+
+                <!-- Number of Rooms Input -->
+                <div class="relative">
+                  <label for="rooms" class="block text-sm font-medium text-gray-700 mb-1">Number of Rooms</label>
+                  <input 
+                    type="number" 
+                    id="rooms"
+                    [(ngModel)]="searchParams.numberOfRooms"
+                    class="block w-full px-4 py-3 rounded-lg border-gray-300 shadow-sm focus:ring-2 focus:ring-airbnb focus:border-airbnb" 
+                    placeholder="Rooms needed"
+                    min="1"
+                  >
+                </div>
               </div>
-              <button class="px-8 py-4 border border-transparent text-lg font-medium rounded-r-xl text-white bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 shadow-lg transform hover:scale-105 transition-all duration-200">
-                Search
-              </button>
+
+              <!-- Search Button -->
+              <div class="mt-4 flex justify-center">
+                <button 
+                  (click)="searchProperties()"
+                  class="w-full md:w-auto px-8 py-4 border border-transparent text-lg font-medium rounded-xl text-white bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 shadow-lg transform hover:scale-105 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pink-500">
+                  Search Properties
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -70,7 +117,9 @@ interface Property {
 
       <!-- Property Listings Section -->
       <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <h2 class="text-3xl font-bold text-gray-900 mb-8">Featured Properties</h2>
+        <h2 class="text-3xl font-bold text-gray-900 mb-8">
+          {{ isSearching ? 'Search Results' : 'Featured Properties' }}
+        </h2>
         
         <!-- Loading State -->
         <div *ngIf="isLoading" class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
@@ -100,7 +149,9 @@ interface Property {
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
           </svg>
           <h3 class="mt-2 text-sm font-medium text-gray-900">No properties found</h3>
-          <p class="mt-1 text-sm text-gray-500">Get started by creating a new property listing.</p>
+          <p class="mt-1 text-sm text-gray-500">
+            {{ isSearching ? 'Try adjusting your search criteria' : 'Get started by creating a new property listing.' }}
+          </p>
         </div>
       </div>
 
@@ -110,12 +161,24 @@ interface Property {
                       (submit)="onCreatePost($event)">
       </app-create-post>
     </div>
-  `
+  `,
+  styles: [`
+    :host {
+      --airbnb: #FF385C;
+    }
+  `]
 })
 export class HomeComponent implements OnInit {
   showCreatePost = false;
   properties: Property[] = [];
   isLoading = true;
+  isSearching = false;
+
+  searchParams: SearchParams = {
+    city: '',
+    maxPrice: null,
+    numberOfRooms: null
+  };
 
   constructor(private http: HttpClient) {}
 
@@ -125,6 +188,7 @@ export class HomeComponent implements OnInit {
 
   fetchProperties() {
     this.isLoading = true;
+    this.isSearching = false;
     this.http.get<Property[]>('http://localhost:8080/api/properties')
       .subscribe({
         next: (data) => {
@@ -133,6 +197,35 @@ export class HomeComponent implements OnInit {
         },
         error: (error) => {
           console.error('Error fetching properties:', error);
+          this.isLoading = false;
+        }
+      });
+  }
+
+  searchProperties() {
+    this.isLoading = true;
+    this.isSearching = true;
+
+    // Build query parameters
+    const params: any = {};
+    if (this.searchParams.city) params.city = this.searchParams.city;
+    if (this.searchParams.maxPrice) params.maxPrice = this.searchParams.maxPrice;
+    if (this.searchParams.numberOfRooms) params.numberOfRooms = this.searchParams.numberOfRooms;
+
+    // Only search if at least one parameter is provided
+    if (Object.keys(params).length === 0) {
+      this.fetchProperties();
+      return;
+    }
+
+    this.http.get<Property[]>('http://localhost:8080/api/bookings/search', { params })
+      .subscribe({
+        next: (data) => {
+          this.properties = data;
+          this.isLoading = false;
+        },
+        error: (error) => {
+          console.error('Error searching properties:', error);
           this.isLoading = false;
         }
       });

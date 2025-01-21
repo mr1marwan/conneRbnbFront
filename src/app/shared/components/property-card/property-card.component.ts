@@ -8,6 +8,7 @@ interface Property {
   city: string;
   title: string;
   description: string;
+  bedrooms: number;
   pricePerNight: number;
   images: string[];
 }
@@ -50,6 +51,7 @@ interface Property {
         <h3 class="text-lg font-semibold text-gray-900 mb-1">{{property.title}}</h3>
         <p class="text-sm text-gray-500 mb-2">{{property.city}}</p>
         <p class="text-sm text-gray-600 mb-3 line-clamp-2">{{property.description}}</p>
+        <p class="text-sm text-gray-600 mb-3 line-clamp-2">{{property.bedrooms}} rooms</p>
         <p class="text-lg font-semibold text-gray-900 mb-3">{{property.pricePerNight}} dh per night</p>
         <a [routerLink]="['/property', property.id]" 
            class="inline-block bg-airbnb text-white font-semibold py-2 px-4 rounded hover:bg-airbnb-dark transition-colors duration-300">
