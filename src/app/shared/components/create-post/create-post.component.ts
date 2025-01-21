@@ -2,6 +2,7 @@ import { Component, EventEmitter, Output, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormArray, FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { HttpClient, HttpHeaders, HttpClientModule } from '@angular/common/http';
+import { switchMap } from 'rxjs';
 
 @Component({
   selector: 'app-create-post',
@@ -141,10 +142,10 @@ export class CreatePostComponent {
         this.isSubmitting = true;
 
         const authToken = localStorage.getItem('access_token');
-        const userId = localStorage.getItem('user_id');
         
-        if (!authToken || !userId) {
-            console.error('No auth token or user ID found');
+        if (!authToken) {
+            console.error('No auth token found');
+            this.isSubmitting = false;
             return;
         }
 
@@ -152,21 +153,28 @@ export class CreatePostComponent {
             .set('Content-Type', 'application/json')
             .set('Authorization', `Bearer ${authToken}`);
 
-        const propertyData = {
-            hostId: 1, // Convert the stored userId to number and use it as hostId
-            title: this.postForm.value.title,
-            description: this.postForm.value.description,
-            address: this.postForm.value.address,
-            city: this.postForm.value.city,
-            bedrooms: this.postForm.value.bedrooms,
-            pricePerNight: this.postForm.value.pricePerNight,
-            images: this.postForm.value.imageUrls || [] // Ensure images is always an array
-        };
-        
-        console.log('Sending property data:', propertyData);
-        console.log('With headers:', headers);
+        // Fetch the user ID from the API
+        this.http.get<number>('http://localhost:8080/api/users/id', { headers })
+            .pipe(
+                switchMap(userId => {
+                    // Use the userId directly since the API returns a number
+                    const propertyData = {
+                        hostId: userId, // Directly assign the userId
+                        title: this.postForm.value.title,
+                        description: this.postForm.value.description,
+                        address: this.postForm.value.address,
+                        city: this.postForm.value.city,
+                        bedrooms: this.postForm.value.bedrooms,
+                        pricePerNight: this.postForm.value.pricePerNight,
+                        images: this.postForm.value.imageUrls || []
+                    };
+                    
+                    console.log('Sending property data:', propertyData);
 
-        this.http.post('http://localhost:8080/api/properties', propertyData, { headers })
+                    // Return the post request as an Observable
+                    return this.http.post('http://localhost:8080/api/properties', propertyData, { headers });
+                })
+            )
             .subscribe({
                 next: (response) => {
                     console.log('Property created successfully:', response);
@@ -174,10 +182,7 @@ export class CreatePostComponent {
                     this.onClose();
                 },
                 error: (error) => {
-                    console.error('Error creating property:', error);
-                    if (error.error instanceof Error) {
-                        console.error('Parsing error:', error.error);
-                    }
+                    console.error('Error:', error);
                     this.isSubmitting = false;
                 },
                 complete: () => {

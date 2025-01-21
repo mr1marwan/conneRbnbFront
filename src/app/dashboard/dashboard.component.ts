@@ -4,6 +4,7 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { RouterModule } from '@angular/router';
 import { PropertyCardComponent } from './property-card.component';
 import { ConfirmDialogComponent } from './confirm-dialog.component';
+import { EditPropertyDialogComponent } from './edit-property-dialog.component';
 
 interface Property {
   id: number;
@@ -19,7 +20,7 @@ interface Property {
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, RouterModule, PropertyCardComponent, ConfirmDialogComponent],
+  imports: [CommonModule, RouterModule, PropertyCardComponent, ConfirmDialogComponent, EditPropertyDialogComponent],
   template: `
     <div class="min-h-screen bg-gray-50 py-8">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -77,6 +78,14 @@ interface Property {
         </div>
       </div>
 
+      <!-- Edit Property Dialog -->
+      <app-edit-property-dialog
+        *ngIf="propertyToEdit"
+        [property]="propertyToEdit"
+        (save)="savePropertyEdit(propertyToEdit)"
+        (cancel)="cancelEdit()">
+      </app-edit-property-dialog>
+
       <!-- Confirmation Dialog -->
       <app-confirm-dialog
         *ngIf="showDeleteDialog"
@@ -99,14 +108,15 @@ export class DashboardComponent implements OnInit {
   isLoading = true;
   showDeleteDialog = false;
   propertyToDelete: number | null = null;
+  propertyToEdit: Property | null = null;
 
   constructor(private http: HttpClient) {}
 
   ngOnInit() {
-    this.fetchProperties();
+    this.fetchUserProperties();
   }
 
-  fetchProperties() {
+  fetchUserProperties() {
     const authToken = localStorage.getItem('access_token');
     if (!authToken) {
       console.error('No auth token found');
@@ -115,31 +125,61 @@ export class DashboardComponent implements OnInit {
 
     const headers = new HttpHeaders().set('Authorization', `Bearer ${authToken}`);
 
-    this.http.get<Property[]>('http://localhost:8080/api/properties', { headers })
+    this.http.get<Property[]>('http://localhost:8080/api/properties/my-properties', { headers })
       .subscribe({
         next: (data) => {
           this.properties = data;
           this.isLoading = false;
         },
         error: (error) => {
-          console.error('Error fetching properties:', error);
+          console.error('Error fetching user properties:', error);
           this.isLoading = false;
         }
       });
   }
 
   onEdit(propertyId: number) {
-    // Navigate to edit page
-    window.location.href = `/properties/${propertyId}/edit`;
+    const property = this.properties.find(p => p.id === propertyId);
+    if (property) {
+      this.propertyToEdit = { ...property };
+    }
+  }
+
+  savePropertyEdit(updatedProperty: Property) {
+    const authToken = localStorage.getItem('access_token');
+    if (!authToken) {
+      console.error('No auth token found');
+      return;
+    }
+
+    const headers = new HttpHeaders().set('Authorization', `Bearer ${authToken}`);
+
+    this.http.put<Property>(`http://localhost:8080/api/properties/${updatedProperty.id}`, updatedProperty, { headers })
+      .subscribe({
+        next: (response) => {
+          // Update the property in the list
+          const index = this.properties.findIndex(p => p.id === response.id);
+          if (index !== -1) {
+            this.properties[index] = response;
+          }
+          this.propertyToEdit = null;
+        },
+        error: (error) => {
+          console.error('Error updating property:', error);
+        }
+      });
+  }
+
+  cancelEdit() {
+    this.propertyToEdit = null;
   }
 
   onDelete(propertyId: number) {
     this.propertyToDelete = propertyId;
-    window.location.href = `/dashboard`;
+    this.showDeleteDialog = true;
   }
 
   onViewReservations(propertyId: number) {
-    // Navigate to reservations page
     window.location.href = `/properties/${propertyId}/reservations`;
   }
 

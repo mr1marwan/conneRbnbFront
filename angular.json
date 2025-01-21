@@ -31,10 +31,9 @@
             "browser": "src/main.ts",
             "outputPath": "dist/demo",
             "polyfills": ["zone.js"],
-            "scripts": ["node_modules/jquery/dist/jquery.min.js",
-  "node_modules/slick-carousel/slick/slick.min.js"],
-            "styles": ["src/global_styles.css" , "node_modules/slick-carousel/slick/slick.scss",
-  "node_modules/slick-carousel/slick/slick-theme.scss"],
+            "scripts": [],
+            "styles": ["src/global_styles.css" 
+ ],
             "tsConfig": "tsconfig.app.json"
           }
         },
