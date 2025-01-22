@@ -5,6 +5,8 @@ import { LoginComponent } from './features/auth/login/login.component';
 import { SignupComponent } from './features/auth/signup/signup.component';
 import { DashboardComponent } from './dashboard/dashboard.component';
 import { PropertyReservationsComponent } from './dashboard/property.reservations.component';
+import { AdminDashboardComponent } from './admin/admin.dashboard.component';
+
 
 export const routes: Routes = [
   { path: 'home', component: HomeComponent },
@@ -13,4 +15,5 @@ export const routes: Routes = [
   {path: 'property/:id', component: PropertyDetailsComponent},
   { path: 'dashboard', component: DashboardComponent },
   { path: 'properties/:id/reservations', component: PropertyReservationsComponent },
+  { path: 'admindashboard', component: AdminDashboardComponent }
 ];
