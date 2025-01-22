@@ -4,6 +4,8 @@ import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { bootstrapApplication } from '@angular/platform-browser';
+import { AuthService } from '../services/auth.service'; // Add this import
+import { Router } from '@angular/router'; // Add this import
 
 interface Property {
   id: number;
@@ -121,7 +123,7 @@ interface BookingDates {
                 <span class="text-2xl font-bold text-gray-900">{{property.pricePerNight}} dh</span>
                 <span class="text-gray-600">per night</span>
               </div>
-              <button (click)="showBookingModal = true" 
+              <button (click)="handleBookNow()" 
                       class="book-button w-full sm:w-auto bg-airbnb text-white font-semibold py-3 px-6 rounded-lg hover:bg-airbnb-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-airbnb">
                 Book Now
               </button>
@@ -131,7 +133,7 @@ interface BookingDates {
             <div class="mt-8">
               <div class="flex justify-between items-center mb-4">
                 <h2 class="text-2xl font-bold text-gray-900">Reviews</h2>
-                <button (click)="showReviewModal = true"
+                <button (click)="handleWriteReview()"
                         class="px-4 py-2 bg-airbnb text-white rounded-md hover:bg-airbnb-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-airbnb">
                   Write a Review
                 </button>
@@ -334,7 +336,9 @@ export class PropertyDetailsComponent implements OnInit {
 
   constructor(
     private route: ActivatedRoute,
-    private http: HttpClient
+    private http: HttpClient,
+    public authService: AuthService, 
+    private router: Router
   ) {}
 
   ngOnInit() {
@@ -512,6 +516,21 @@ export class PropertyDetailsComponent implements OnInit {
           console.error('Error deleting review:', error);
         }
       });
+  }
+
+  handleBookNow() {
+    if (this.authService.isLoggedIn()) {
+      this.showBookingModal = true;
+    } else {
+      this.router.navigate(['/login']);
+    }
+  }
+  handleWriteReview() {
+    if (this.authService.isLoggedIn()) {
+      this.showReviewModal = true;
+    } else {
+      this.router.navigate(['/login']);
+    }
   }
 }
 

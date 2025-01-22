@@ -4,6 +4,7 @@ import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { RouterModule } from '@angular/router';
 import { HttpClientModule, HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Router } from '@angular/router';
+import { AuthService } from '../../../services/auth.service';
 
 @Component({
   selector: 'app-login',
@@ -66,7 +67,7 @@ export class LoginComponent {
   successMessage = '';
   errorMessage = '';
 
-  constructor(private fb: FormBuilder, private http: HttpClient, private router: Router) {
+  constructor(private fb: FormBuilder, private http: HttpClient, private router: Router, private authService: AuthService) {
     this.loginForm = this.fb.group({
       email: ['', [Validators.required, Validators.email]],
       password: ['', [Validators.required]]
@@ -79,7 +80,10 @@ export class LoginComponent {
         this.http.post('http://localhost:8080/api/v1/auth/login', this.loginForm.value)
           .subscribe({
             next: (response: any) => {
+
               console.log('Login successful:', response);
+              // In your login component's successful login handler:
+              this.authService.login(response.access_token, response.refresh_token);
               // Store the tokens in localStorage
               localStorage.setItem('access_token', response.access_token);
               localStorage.setItem('refresh_token', response.refresh_token);

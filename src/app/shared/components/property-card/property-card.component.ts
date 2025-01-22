@@ -1,7 +1,8 @@
 import { Component, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
-
+import { AuthService } from '../../../services/auth.service'; // Add this import
+import { Router } from '@angular/router'; // Add this import
 interface Property {
   id: number;
   address: string;
@@ -64,6 +65,10 @@ interface Property {
 export class PropertyCardComponent {
   @Input() property!: Property;
   currentImageIndex: number = 0;
+  constructor(
+    public authService: AuthService, // Add AuthService
+    private router: Router // Add Router
+  ) {}
 
   nextImage() {
     this.currentImageIndex = (this.currentImageIndex + 1) % this.property.images.length;

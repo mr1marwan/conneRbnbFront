@@ -5,6 +5,8 @@ import { FormsModule } from '@angular/forms';
 import { NavbarComponent } from '../shared/components/navbar/navbar.component';
 import { CreatePostComponent } from '../shared/components/create-post/create-post.component';
 import { PropertyCardComponent } from '../shared/components/property-card/property-card.component';
+import { AuthService } from '../services/auth.service'; // Add this import
+import { Router } from '@angular/router'; // Add this import
 
 interface Property {
   id: number;
@@ -42,7 +44,7 @@ interface SearchParams {
               <h3 class="text-2xl tracking-tight font-extrabold text-white sm:text-3xl md:text-4xl animate-slide-in">
                 Find your dream stay
               </h3>
-              <button (click)="showCreatePost = true" 
+              <button (click)="handleCreatePost()" 
                       class="transform hover:scale-105 transition-transform duration-200 inline-flex items-center px-6 py-3 border border-transparent text-sm font-medium rounded-lg text-white bg-white bg-opacity-20 hover:bg-opacity-30 backdrop-blur-sm">
                 <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
@@ -105,7 +107,8 @@ interface SearchParams {
               <!-- Search Button -->
               <div class="mt-4 flex justify-center">
                 <button 
-                  (click)="searchProperties()"
+                  (click)="handleSearch()"
+                  
                   class="w-full md:w-auto px-8 py-4 border border-transparent text-lg font-medium rounded-xl text-white bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 shadow-lg transform hover:scale-105 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pink-500">
                   Search Properties
                 </button>
@@ -180,7 +183,24 @@ export class HomeComponent implements OnInit {
     numberOfRooms: null
   };
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient  ,public authService: AuthService, 
+    private router: Router ) {}
+
+    handleCreatePost() {
+      if (this.authService.isLoggedIn()) {
+        this.showCreatePost = true;
+      } else {
+        this.router.navigate(['/login']);
+      }
+    }
+  
+    handleSearch() {
+      if (this.authService.isLoggedIn()) {
+        this.searchProperties();
+      } else {
+        this.router.navigate(['/login']);
+      }
+    }
 
   ngOnInit() {
     this.fetchProperties();
