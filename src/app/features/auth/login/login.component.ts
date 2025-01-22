@@ -76,39 +76,42 @@ export class LoginComponent {
 
 
   onSubmit() {
-      if (this.loginForm.valid) {
-        this.http.post('http://localhost:8080/api/v1/auth/login', this.loginForm.value)
-          .subscribe({
-            next: (response: any) => {
-
-              console.log('Login successful:', response);
-              // In your login component's successful login handler:
-              this.authService.login(response.access_token, response.refresh_token);
-              // Store the tokens in localStorage
-              localStorage.setItem('access_token', response.access_token);
-              localStorage.setItem('refresh_token', response.refresh_token);
-              
-              // Add this: Decode the JWT to get user info
-              const decodedToken = this.decodeJwt(response.access_token);
-              localStorage.setItem('user_id', decodedToken.id); // Assuming ID is in the token
-              
-              this.successMessage = 'Login successful!';
-              this.showSuccessMessage = true;
-              this.showErrorMessage = false;
-              
-              this.router.navigate(['/home']);
-            },
-          error: (error: HttpErrorResponse) => {
-            console.error('Login failed:', error);
-            if (error.status === 401) {
-              this.errorMessage = 'Invalid email or password. Please try again.';
-            } else {
-              this.errorMessage = error.error?.message || 'Invalid email or password. Please try again.';
-            }
-            this.showErrorMessage = true;
-            this.showSuccessMessage = false;
+    if (this.loginForm.valid) {
+      this.http.post('http://localhost:8080/api/v1/auth/login', this.loginForm.value).subscribe({
+        next: (response: any) => {
+          console.log('Login successful:', response);
+          
+          // Store tokens and decode JWT for user info
+          this.authService.login(response.access_token, response.refresh_token);
+          localStorage.setItem('access_token', response.access_token);
+          localStorage.setItem('refresh_token', response.refresh_token);
+  
+          const decodedToken = this.decodeJwt(response.access_token);
+          localStorage.setItem('user_id', decodedToken.id); // Assuming ID is in the token
+          
+          this.successMessage = 'Login successful!';
+          this.showSuccessMessage = true;
+          this.showErrorMessage = false;
+  
+          // Redirect logic based on email
+          const email = this.loginForm.get('email')?.value;
+          if (email === 'admin@gmail.com') {
+            this.router.navigate(['/admindashboard']);
+          } else {
+            this.router.navigate(['/home']);
           }
-        });
+        },
+        error: (error: HttpErrorResponse) => {
+          console.error('Login failed:', error);
+          if (error.status === 401) {
+            this.errorMessage = 'Invalid email or password. Please try again.';
+          } else {
+            this.errorMessage = error.error?.message || 'Invalid email or password. Please try again.';
+          }
+          this.showErrorMessage = true;
+          this.showSuccessMessage = false;
+        }
+      });
     } else {
       this.loginForm.markAllAsTouched();
       this.errorMessage = 'Please fill in all required fields correctly.';
@@ -116,6 +119,7 @@ export class LoginComponent {
       this.showSuccessMessage = false;
     }
   }
+  
   // Add this helper method
 private decodeJwt(token: string): any {
   try {
