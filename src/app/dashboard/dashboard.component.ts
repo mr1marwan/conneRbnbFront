@@ -5,6 +5,7 @@ import { RouterModule } from '@angular/router';
 import { PropertyCardComponent } from './property-card.component';
 import { ConfirmDialogComponent } from './confirm-dialog.component';
 import { EditPropertyDialogComponent } from './edit-property-dialog.component';
+import { NavbarComponent } from '../shared/components/navbar/navbar.component';
 
 interface Property {
   id: number;
@@ -20,9 +21,12 @@ interface Property {
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, RouterModule, PropertyCardComponent, ConfirmDialogComponent, EditPropertyDialogComponent],
+  imports: [CommonModule, RouterModule, PropertyCardComponent, ConfirmDialogComponent,NavbarComponent, EditPropertyDialogComponent],
   template: `
+    <app-navbar></app-navbar>
     <div class="min-h-screen bg-gray-50 py-8">
+   
+
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between items-center mb-8">
           <h1 class="text-2xl font-bold text-gray-900">My Properties</h1>

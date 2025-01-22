@@ -6,6 +6,7 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { bootstrapApplication } from '@angular/platform-browser';
 import { AuthService } from '../services/auth.service'; // Add this import
 import { Router } from '@angular/router'; // Add this import
+import { NavbarComponent } from '../shared/components/navbar/navbar.component';
 
 interface Property {
   id: number;
@@ -44,8 +45,9 @@ interface BookingDates {
 @Component({
   selector: 'app-property-details',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule,NavbarComponent],
   template: `
+   <app-navbar></app-navbar>
     <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div *ngIf="property" class="bg-white shadow-lg rounded-xl overflow-hidden transform transition-all duration-300 hover:shadow-xl">
         <!-- Image Carousel -->
